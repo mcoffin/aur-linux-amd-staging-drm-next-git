@@ -6,8 +6,8 @@ pkgdesc='Linux kernel with AMDGPU DC patches'
 
 _branch=amd-staging-drm-next
 _kernelname=${pkgbase#linux}
-pkgver=5.6.891392.6302a40c6dfa
-pkgrel=1
+pkgver=5.10.949911.bc32b65255ee
+pkgrel=4
 arch=(x86_64)
 url='https://gitlab.freedesktop.org/drm/amd'
 license=(GPL2)
@@ -17,19 +17,33 @@ makedepends=(
   git
 )
 options=('!strip')
-_srcname=linux-agd5f
+_srcname=linux-mcoffin
 source=(
-  "${_srcname}::git://people.freedesktop.org/~agd5f/linux#branch=${_branch}"
+  "${_srcname}::git+git://github.com/mcoffin/linux.git#branch=${_branch}"
   config         # the main kernel config file
   sphinx-workaround.patch
-  gcc10-early-boot-fix.patch
-  wno-maybe-initialized.patch
+  0001-drm-amdgpu-pm-Account-for-extra-separator-characters.patch
+  0002-amdgpu-debug.patch
+  0001-futex-Implement-mechanism-to-wait-on-any-of-several-.patch
+  0002-selftests-futex-Add-FUTEX_WAIT_MULTIPLE-timeout-test.patch
+  0003-selftests-futex-Add-FUTEX_WAIT_MULTIPLE-wouldblock-t.patch
+  0004-selftests-futex-Add-FUTEX_WAIT_MULTIPLE-wake-up-test.patch
+  0005-futex-Add-Proton-compatibility-code.patch
+  0006-futex-Fix-FUTEX_WAIT_MULTIPLE-for-5.10.patch
+  0001-kvm-Squelch-uninitialized-variable-warning.patch
 )
 sha256sums=('SKIP'
             '623601ed9d7879dd9dba1cd50fc8051f9db508b49b4fc0c47c5a9eb9165fc04e'
             '8cb21e0b3411327b627a9dd15b8eb773295a0d2782b1a41b2a8839d1b2f5778c'
-            '8c8fb0be88fcd767e8768ee1bde491e8b4de83f6a644e002019d1d5a0da920f9'
-            'b4e60ef20c47093ec47867439d057d936c6ba8384cc47a0d0737830c48bea63a')
+            'f6cf3b90d0c66f7e53eb668a8eab409a8ad5943afbf777a604a3d15c2616216d'
+            '40a52fd8a7576fbb99606d2a5f8c9826674ece8b5a0ac128244ad8c1fd0ed316'
+            '26ddbd0d075a09f5f5e192f3ba54af33b38c672d366157089565fc78efcfc956'
+            '9d40f04e3c254d7f3fbfd05f31d9e8cea5ef0f04989ca89faabfb31cb2fd033c'
+            'da3061be1786c39597ac274bd2eb89be62364fe91990346c2aded5279e563047'
+            '0c60418808fc75bca9e6f9fa454339f873ae8590bce42f1870e1b1291893323d'
+            'd60bc6516c9e5d08d15c160467b4b0476ff26e067ba35609e51b3187e07ae235'
+            'bd7b9b1338e863ba7fb8752a7462f36ccd9abcddf2f4b6184ac636cca4f96561'
+            'b44f134944ab32d489135197bf96715ac2ca2f1c7890bb0b6133f259933c7eb3')
 
 pkgver() {
   cd "${_srcname}"

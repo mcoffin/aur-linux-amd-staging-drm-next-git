@@ -1,0 +1,90 @@
+From 05a82c5de4ebd91807c1d551e83882b4b5cf0d49 Mon Sep 17 00:00:00 2001
+From: Matt Coffin <mcoffin13@gmail.com>
+Date: Thu, 3 Sep 2020 13:22:25 -0600
+Subject: [PATCH 2/3] amdgpu debug
+
+---
+ drivers/gpu/drm/amd/pm/amdgpu_pm.c             | 15 ++++++++++++---
+ drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c |  2 ++
+ 2 files changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/pm/amdgpu_pm.c b/drivers/gpu/drm/amd/pm/amdgpu_pm.c
+index 9ab29c21e458..f5f6ce10b32d 100644
+--- a/drivers/gpu/drm/amd/pm/amdgpu_pm.c
++++ b/drivers/gpu/drm/amd/pm/amdgpu_pm.c
+@@ -776,8 +776,10 @@ static ssize_t amdgpu_set_pp_od_clk_voltage(struct device *dev,
+ 	if (amdgpu_in_reset(adev))
+ 		return -EPERM;
+ 
+-	if (count > 127)
++	if (count > 127) {
++		dev_warn(dev, "Invalid pp_od_clk_voltage: argument too long\n");
+ 		return -EINVAL;
++	}
+ 
+ 	if (*buf == 's')
+ 		type = PP_OD_EDIT_SCLK_VDDC_TABLE;
+@@ -789,8 +791,10 @@ static ssize_t amdgpu_set_pp_od_clk_voltage(struct device *dev,
+ 		type = PP_OD_COMMIT_DPM_TABLE;
+ 	else if (!strncmp(buf, "vc", 2))
+ 		type = PP_OD_EDIT_VDDC_CURVE;
+-	else
++	else {
++		dev_warn(dev, "Invalid pp_od_clk_voltage: Unknown buffer start\n");
+ 		return -EINVAL;
++	}
+ 
+ 	memcpy(buf_cpy, buf, count+1);
+ 
+@@ -804,8 +808,10 @@ static ssize_t amdgpu_set_pp_od_clk_voltage(struct device *dev,
+ 		if (strlen(sub_str) == 0)
+ 			continue;
+ 		ret = kstrtol(sub_str, 0, &parameter[parameter_size]);
+-		if (ret)
++		if (ret) {
++			dev_warn(dev, "Invalid pp_od_clk_voltage: failed to parse number: \"%s\"\n", sub_str);
+ 			return -EINVAL;
++		}
+ 		parameter_size++;
+ 
+ 		while (isspace(*tmp_str))
+@@ -825,6 +831,7 @@ static ssize_t amdgpu_set_pp_od_clk_voltage(struct device *dev,
+ 		if (ret) {
+ 			pm_runtime_mark_last_busy(ddev->dev);
+ 			pm_runtime_put_autosuspend(ddev->dev);
++			dev_warn(dev, "Invalid pp_od_clk_voltage: smu_od_edit_dpm_table failed with status: %d\n", ret);
+ 			return -EINVAL;
+ 		}
+ 	} else {
+@@ -834,6 +841,7 @@ static ssize_t amdgpu_set_pp_od_clk_voltage(struct device *dev,
+ 			if (ret) {
+ 				pm_runtime_mark_last_busy(ddev->dev);
+ 				pm_runtime_put_autosuspend(ddev->dev);
++				dev_warn(dev, "Invalid pp_od_clk_voltage: smu_odn_edit_dpm_table failed with status: %d\n", ret);
+ 				return -EINVAL;
+ 			}
+ 		}
+@@ -849,6 +857,7 @@ static ssize_t amdgpu_set_pp_od_clk_voltage(struct device *dev,
+ 			} else {
+ 				pm_runtime_mark_last_busy(ddev->dev);
+ 				pm_runtime_put_autosuspend(ddev->dev);
++				dev_warn(dev, "Invalid pp_od_clk_voltage: dispatch_tasks function did not exist!\n");
+ 				return -EINVAL;
+ 			}
+ 		}
+diff --git a/drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c b/drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c
+index f5aeb0b5cf97..85adcbfe0447 100644
+--- a/drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c
++++ b/drivers/gpu/drm/amd/pm/swsmu/smu11/smu_v11_0.c
+@@ -1983,6 +1983,8 @@ int smu_v11_0_gfx_ulv_control(struct smu_context *smu,
+ {
+ 	int ret = 0;
+ 
++	dev_warn(smu->adev->dev, "smu_v11_0_gfx_ulv_control: enabled = %s\n", enablement ? "true" : "false");
++
+ 	if (smu_cmn_feature_is_supported(smu, SMU_FEATURE_GFX_ULV_BIT))
+ 		ret = smu_cmn_feature_set_enabled(smu, SMU_FEATURE_GFX_ULV_BIT, enablement);
+ 
+-- 
+2.28.0
+
